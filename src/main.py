@@ -468,7 +468,7 @@ def init():
     brain.screen.set_cursor(1,1)
     brain.screen.print("Initialization Complete.")
     wait(2, SECONDS)
-    brain.screen.clear_screen
+    brain.screen.clear_screen()
     ui.add_button(50, 20, "TEST", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "TEST", userTouchAction).set_color(Color.BLUE)
 
