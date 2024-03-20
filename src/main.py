@@ -471,6 +471,7 @@ def init():
     brain.screen.clear_screen()
     ui.add_button(50, 20, "TEST", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "TEST", userTouchAction).set_color(Color.BLUE)
+    ui.display()
 
 '''
 自动程序
