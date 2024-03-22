@@ -173,6 +173,7 @@ GUI
 class ButtonUi:
     class Button:
         def __init__(self):
+            # 初始化参数
             self.index = 0
             self.xpos = 0
             self.ypos = 0
@@ -185,6 +186,7 @@ class ButtonUi:
             self.toggle = False
             self.callback = None
 
+        # 开关式按钮
         def set_toggle(self, toggle, text):
             self.toggle = toggle
             if text is not None:
@@ -193,11 +195,13 @@ class ButtonUi:
                 self.alttext = self.text
             return self
 
+        # 设置按钮大小
         def set_size(self, width, height):
             self.width = width
             self.height = height
             return self
 
+        # 设置按钮颜色
         def set_color(self, color):
             self.color = color
             return self
@@ -210,6 +214,7 @@ class ButtonUi:
         self.brain.screen.released(self._screen_release)
 
     @staticmethod
+    # 按钮查找函数
     def _find_button(b, xpos, ypos):
         if xpos < b.xpos or xpos > (b.xpos + b.width):
             return False
@@ -219,6 +224,7 @@ class ButtonUi:
 
         return True
 
+    # 按钮绘制函数
     def _draw_button(self, b, bHighlight):
         if bHighlight:
             self.brain.screen.draw_rectangle(
@@ -242,10 +248,12 @@ class ButtonUi:
         self.brain.screen.print_at(
             text, opaque=False, x=b.xpos + (b.width-textwidth)/2, y=b.ypos + b.height/2 + 10)
 
+    # 多个按钮绘制
     def _draw_buttons(self):
         for b in self._buttons:
             self._draw_button(b, False)
-
+    
+    # 按钮按下检测
     def _screen_press(self):
         if not self._enabled:
             return
@@ -265,6 +273,7 @@ class ButtonUi:
                     b.callback(b.index, b.state)
                 return
 
+    # 按钮抬起检测
     def _screen_release(self):
         if not self._enabled:
             return
@@ -278,6 +287,7 @@ class ButtonUi:
 
         self._draw_buttons()
 
+    # 添加按钮
     def add_button(self, x, y, text, callback):
         b = ButtonUi.Button()
         b.index = len(self._buttons)
@@ -288,12 +298,15 @@ class ButtonUi:
         self._buttons.append(b)
         return b
 
+    # 启用
     def enable(self):
         self._enabled = True
 
+    # 禁用
     def disable(self):
         self._enabled = False
 
+    # 显示按钮
     def display(self, bClearScreen=False):
         if bClearScreen:
             self.brain.screen.clear_screen()
@@ -469,6 +482,7 @@ def init():
     brain.screen.print("Initialization Complete.")
     wait(2, SECONDS)
     brain.screen.clear_screen()
+    
     ui.add_button(50, 20, "TEST", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "TEST", userTouchAction).set_color(Color.BLUE)
     ui.display()
