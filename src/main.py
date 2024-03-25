@@ -317,11 +317,11 @@ GUI按钮检测
 '''
 def userTouchAction(index, state):
     if index == 0 and not state:
-        brain.screen.print_at("Button 1 pressed ", x=150, y=150)
+        # brain.screen.print_at("Button 1 pressed ", x=150, y=150)
+        inertial_reset()
 
     if index == 1 and not state:
-        brain.screen.print_at("Button 2 pressed ", x=150, y=150)
-
+        inertial_stat()
     if index == 2 and not state:
         brain.screen.print_at("Button 3 pressed ", x=150, y=150)
 
@@ -483,7 +483,7 @@ def init():
     wait(2, SECONDS)
     brain.screen.clear_screen()
     
-    ui.add_button(50, 20, "TEST", userTouchAction).set_color(Color.RED)
+    ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "TEST", userTouchAction).set_color(Color.BLUE)
     ui.display()
 
@@ -493,11 +493,22 @@ def init():
 def auton():
     pass
 
+'''
+其他函数
+'''
 def shoot_func():
     brain.screen.clear_screen()
     brain.screen.set_cursor(1,1)
     brain.screen.print("SHOOT.")
     shoot.spin(FORWARD)
+
+def inertial_reset():
+    inertial.reset_heading()
+    inertial.reset_rotation()
+
+def inertial_stat():
+    brain.screen.clear_screen()
+    brain.screen.print_at(inertial.rotation(), x=150, y=150)
 
 '''
 打包
