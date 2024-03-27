@@ -18,6 +18,7 @@ brain = Brain()
 '''
 speed_level = 2 # 2 -> 高速 1-> 低速
 pneu_count = 0 # 记录气动执行次数
+stat_enabled = True
 
 
 '''
@@ -322,6 +323,8 @@ def userTouchAction(index, state):
 
     if index == 1 and not state:
         inertial_stat()
+        # brain.screen.print_at("Button 2 pressed ", x=150, y=150)
+
     if index == 2 and not state:
         brain.screen.print_at("Button 3 pressed ", x=150, y=150)
 
@@ -484,7 +487,7 @@ def init():
     brain.screen.clear_screen()
     
     ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
-    ui.add_button(150, 20, "TEST", userTouchAction).set_color(Color.BLUE)
+    ui.add_button(150, 20, "STATS", userTouchAction).set_color(Color.BLUE)
     ui.display()
 
 '''
@@ -507,8 +510,10 @@ def inertial_reset():
     inertial.reset_rotation()
 
 def inertial_stat():
-    brain.screen.clear_screen()
-    brain.screen.print_at(inertial.rotation(), x=150, y=150)
+    while True:
+        brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
+        if stat_enabled == False:
+            break
 
 '''
 打包
