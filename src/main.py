@@ -322,7 +322,7 @@ def userTouchAction(index, state):
         inertial_reset()
 
     if index == 1 and not state:
-        inertial_stat()
+        shoot_func()
         # brain.screen.print_at("Button 2 pressed ", x=150, y=150)
 
     if index == 2 and not state:
@@ -365,7 +365,8 @@ def set_speed(value):
 遥控
 '''
 def control():
-    global shoot_ready,speed_level
+    # global shoot_ready,speed_level
+    global speed_level
     speed_level = 3
     xs = 0.7
     ys = 1.0
@@ -384,12 +385,12 @@ def control():
             controller_1.screen.set_cursor(2, 10)
             controller_1.screen.print("Speed Level: 1")
         
-        # 弹射
-        if controller_1.buttonR2.pressing():
-            shoot.set_stopping(HOLD)
-            shoot.spin(FORWARD)
-        else:
-            shoot.stop()
+        # # 弹射
+        # if controller_1.buttonR2.pressing():
+        #     shoot.set_stopping(HOLD)
+        #     shoot.spin(FORWARD)
+        # else:
+        #     shoot.stop()
 
         # 底盘
         y = controller_1.axis3.position() * ys
@@ -487,9 +488,12 @@ def init():
     brain.screen.clear_screen()
     
     ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
-    ui.add_button(150, 20, "STATS", userTouchAction).set_color(Color.BLUE)
+    ui.add_button(150, 20, "SHOOT", userTouchAction).set_color(Color.BLUE)
     ui.display()
 
+    while True:
+        brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
+        brain.screen.print_at("heading (yaw): ", inertial.heading(), x=150, y=175)
 '''
 自动程序
 '''
@@ -500,20 +504,15 @@ def auton():
 其他函数
 '''
 def shoot_func():
-    brain.screen.clear_screen()
-    brain.screen.set_cursor(1,1)
-    brain.screen.print("SHOOT.")
+    brain.screen.print_at("SHOOT.", x=150, y=200)
     shoot.spin(FORWARD)
+    wait(1, SECONDS)
+    brain.screen.clear_screen()
 
 def inertial_reset():
     inertial.reset_heading()
     inertial.reset_rotation()
-
-def inertial_stat():
-    while True:
-        brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
-        if stat_enabled == False:
-            break
+        
 
 '''
 打包
