@@ -50,8 +50,8 @@ pneumatic = DigitalOut(brain.three_wire_port.e)
 arm = Motor(Ports.PORT4, GearSetting.RATIO_18_1, False)
 
 # 弹射
-shoot_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False)
-shoot_motor_b = Motor(Ports.PORT8, GearSetting.RATIO_36_1, True)
+shoot_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
+shoot_motor_b = Motor(Ports.PORT8, GearSetting.RATIO_6_1, True)
 shoot = MotorGroup(shoot_motor_a, shoot_motor_b)
 
 # 陀螺仪
@@ -505,9 +505,15 @@ def auton():
 '''
 def shoot_func():
     brain.screen.print_at("SHOOT.", x=150, y=200)
-    shoot.spin(FORWARD)
+    shoot.set_velocity(50, PERCENT)
+    shoot_motor_a.spin(REVERSE)
+    shoot_motor_b.spin(FORWARD)
+    # wait(300,MSEC)
+    # shoot_motor_a.spin(REVERSE)
+    # shoot_motor_b.spin(FORWARD)
     wait(1, SECONDS)
     brain.screen.clear_screen()
+    ui.display()
 
 def inertial_reset():
     inertial.reset_heading()
