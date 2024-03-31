@@ -326,7 +326,7 @@ def userTouchAction(index, state):
         # brain.screen.print_at("Button 2 pressed ", x=150, y=150)
 
     if index == 2 and not state:
-        brain.screen.print_at("Button 3 pressed ", x=150, y=150)
+        shoot_angle()
 
     if index == 3 and not state:
         brain.screen.print_at("Button 4 pressed ", x=150, y=150)
@@ -355,11 +355,11 @@ def set_speed(value):
 '''
 弹射结构初始化
 '''
-# def shoot_ready():
-#     shoot.set_stopping(HOLD)
-#     while pot.angle(PERCENT) < 48:
-#         shoot.spin(FORWARD)
-#     shoot.stop()
+def shoot_ready():
+    shoot.set_stopping(HOLD)
+    while pot.angle(PERCENT) < 48:
+        shoot.spin(FORWARD)
+    shoot.stop()
 
 '''
 遥控
@@ -427,7 +427,7 @@ def control():
         if controller_1.buttonR1.pressing():
             shoot.set_stopping(HOLD)
             shoot.set_timeout(0.5,SECONDS)
-            shoot.spin_for(FORWARD,200,DEGREES)
+            shoot.spin_for(FORWARD,100,DEGREES)
             shoot.stop()
             shoot_ready()
 
@@ -459,6 +459,11 @@ def init():
     shoot.set_stopping(HOLD)
     brain.screen.set_cursor(5,1)
     brain.screen.print("Catapult...")
+    shoot.set_velocity(100,PERCENT)
+    shoot_motor_a.reset_position()
+    shoot_motor_b.reset_position()
+    shoot_motor_a.spin_to_position(-900,DEGREES)
+    shoot_motor_b.spin_to_position(900,DEGREES)
     wait(50, MSEC)
     brain.screen.print("READY")
     arm.set_stopping(COAST)
@@ -489,6 +494,7 @@ def init():
     
     ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "SHOOT", userTouchAction).set_color(Color.BLUE)
+    ui.add_button(250, 20, "ANGLE", userTouchAction).set_color(Color.RED)
     ui.display()
 
     while True:
@@ -505,15 +511,33 @@ def auton():
 '''
 def shoot_func():
     brain.screen.print_at("SHOOT.", x=150, y=200)
-    shoot.set_velocity(50, PERCENT)
-    shoot_motor_a.spin(REVERSE)
-    shoot_motor_b.spin(FORWARD)
+    shoot.set_velocity(100, PERCENT)
+    shoot.set_stopping(HOLD)
+    shoot_motor_a.spin_for(REVERSE,250,DEGREES)
+    shoot_motor_b.spin_for(FORWARD,250,DEGREES)
+    wait(1,SECONDS)
+
+    # shoot.stop()
     # wait(300,MSEC)
     # shoot_motor_a.spin(REVERSE)
     # shoot_motor_b.spin(FORWARD)
-    wait(1, SECONDS)
+
+    # shoot.set_stopping(HOLD)
+    # shoot.set_timeout(0.5,SECONDS)
+    shoot_motor_a.reset_position()
+    shoot_motor_b.reset_position()
+    shoot_motor_a.spin_to_position(-900,DEGREES)
+    shoot_motor_b.spin_to_position(900,DEGREES)
+    # shoot_motor_a.spin_for(REVERSE,900,DEGREES)
+    # shoot_motor_b.spin_for(FORWARD,900,DEGREES)
+    # shoot.stop()
+    # shoot_ready()
     brain.screen.clear_screen()
     ui.display()
+
+def shoot_angle():
+    shoot_motor_a.spin_for(REVERSE,900,DEGREES)
+    shoot_motor_b.spin_for(FORWARD,900,DEGREES)
 
 def inertial_reset():
     inertial.reset_heading()
