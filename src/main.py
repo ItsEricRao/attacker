@@ -14,14 +14,6 @@ from vex import *
 brain = Brain()
 
 '''
-全局变量声明
-'''
-speed_level = 2 # 2 -> 高速 1-> 低速
-pneu_count = 0 # 记录气动执行次数
-stat_enabled = True
-
-
-'''
 端口配置
 '''
 # 右电机
@@ -56,6 +48,16 @@ shoot = MotorGroup(shoot_motor_a, shoot_motor_b)
 
 # 陀螺仪
 inertial = Inertial(Ports.PORT7)
+
+# 角度传感器
+# rotation_sensor = 
+
+'''
+全局变量声明
+'''
+speed_level = 2 # 2 -> 高速 1-> 低速
+pneu_count = 0 # 记录气动执行次数
+init_angle = 65
 
 # 等待初始化
 wait(30, MSEC)
@@ -326,7 +328,7 @@ def userTouchAction(index, state):
         # brain.screen.print_at("Button 2 pressed ", x=150, y=150)
 
     if index == 2 and not state:
-        shoot_angle()
+        intake_func()
 
     if index == 3 and not state:
         brain.screen.print_at("Button 4 pressed ", x=150, y=150)
@@ -462,8 +464,15 @@ def init():
     shoot.set_velocity(100,PERCENT)
     shoot_motor_a.reset_position()
     shoot_motor_b.reset_position()
-    shoot_motor_a.spin_to_position(-900,DEGREES)
-    shoot_motor_b.spin_to_position(900,DEGREES)
+    shoot_motor_a.spin(REVERSE)
+    shoot_motor_b.spin(FORWARD)
+    while True:
+        if pot.value(PERCENT) >= init_angle:
+            shoot_motor_a.stop()
+            shoot_motor_b.stop()
+            # brain.screen.clear_screen()
+            # brain.screen.print("success")
+            break
     wait(50, MSEC)
     brain.screen.print("READY")
     arm.set_stopping(COAST)
@@ -485,6 +494,10 @@ def init():
     brain.screen.print("Inertial...")
     wait(50, MSEC)
     brain.screen.print("READY")
+    brain.screen.set_cursor(9,1)
+    brain.screen.print("Potentiometer...")
+    wait(50, MSEC)
+    brain.screen.print("READY")
     wait(2,SECONDS)
     brain.screen.clear_screen()
     brain.screen.set_cursor(1,1)
@@ -494,12 +507,13 @@ def init():
     
     ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "SHOOT", userTouchAction).set_color(Color.BLUE)
-    ui.add_button(250, 20, "ANGLE", userTouchAction).set_color(Color.RED)
+    ui.add_button(250, 20, "INTAKE", userTouchAction).set_color(Color.RED)
     ui.display()
 
     while True:
         brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
         brain.screen.print_at("heading (yaw): ", inertial.heading(), x=150, y=175)
+        brain.screen.print_at("rotation sensor: ", pot.value(PERCENT), x=150, y=200)
 '''
 自动程序
 '''
@@ -513,35 +527,26 @@ def shoot_func():
     brain.screen.print_at("SHOOT.", x=150, y=200)
     shoot.set_velocity(100, PERCENT)
     shoot.set_stopping(HOLD)
-    shoot_motor_a.spin_for(REVERSE,250,DEGREES)
-    shoot_motor_b.spin_for(FORWARD,250,DEGREES)
-    wait(1,SECONDS)
-
-    # shoot.stop()
-    # wait(300,MSEC)
-    # shoot_motor_a.spin(REVERSE)
-    # shoot_motor_b.spin(FORWARD)
-
-    # shoot.set_stopping(HOLD)
-    # shoot.set_timeout(0.5,SECONDS)
-    shoot_motor_a.reset_position()
-    shoot_motor_b.reset_position()
-    shoot_motor_a.spin_to_position(-900,DEGREES)
-    shoot_motor_b.spin_to_position(900,DEGREES)
-    # shoot_motor_a.spin_for(REVERSE,900,DEGREES)
-    # shoot_motor_b.spin_for(FORWARD,900,DEGREES)
-    # shoot.stop()
-    # shoot_ready()
+    shoot_motor_a.spin_for(REVERSE,400,DEGREES)
+    shoot_motor_b.spin_for(FORWARD,400,DEGREES)
+    wait(350,MSEC)
+    shoot_motor_a.spin(REVERSE)
+    shoot_motor_b.spin(FORWARD)
+    while True:
+        if pot.value(PERCENT) >= init_angle:
+            shoot_motor_a.stop()
+            shoot_motor_b.stop()
+            break
     brain.screen.clear_screen()
     ui.display()
 
-def shoot_angle():
-    shoot_motor_a.spin_for(REVERSE,900,DEGREES)
-    shoot_motor_b.spin_for(FORWARD,900,DEGREES)
 
 def inertial_reset():
     inertial.reset_heading()
     inertial.reset_rotation()
+
+def intake_func():
+    intake.spin(FORWARD)
         
 
 '''
