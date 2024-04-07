@@ -57,7 +57,8 @@ inertial = Inertial(Ports.PORT7)
 '''
 speed_level = 2 # 2 -> 高速 1-> 低速
 pneu_count = 0 # 记录气动执行次数
-init_angle = 65
+init_angle = 68
+back_angle = 300
 
 # 等待初始化
 wait(30, MSEC)
@@ -527,8 +528,8 @@ def shoot_func():
     brain.screen.print_at("SHOOT.", x=150, y=200)
     shoot.set_velocity(100, PERCENT)
     shoot.set_stopping(HOLD)
-    shoot_motor_a.spin_for(REVERSE,400,DEGREES)
-    shoot_motor_b.spin_for(FORWARD,400,DEGREES)
+    shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
+    shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
     wait(350,MSEC)
     shoot_motor_a.spin(REVERSE)
     shoot_motor_b.spin(FORWARD)
