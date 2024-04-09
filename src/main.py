@@ -49,14 +49,15 @@ shoot = MotorGroup(shoot_motor_a, shoot_motor_b)
 # 陀螺仪
 inertial = Inertial(Ports.PORT7)
 
-# 角度传感器
-# rotation_sensor = 
+# 限位开关
+limit_switch = Limit(brain.three_wire_port.a)
 
 '''
 全局变量声明
 '''
 speed_level = 2 # 2 -> 高速 1-> 低速
 pneu_count = 0 # 记录气动执行次数
+shoot_count = 0
 init_angle = 68
 back_angle = 300
 
@@ -332,7 +333,7 @@ def userTouchAction(index, state):
         intake_func()
 
     if index == 3 and not state:
-        brain.screen.print_at("Button 4 pressed ", x=150, y=150)
+        shoot_loop()
 
 # GUI对象创建
 ui = ButtonUi()
@@ -471,8 +472,6 @@ def init():
         if pot.value(PERCENT) >= init_angle:
             shoot_motor_a.stop()
             shoot_motor_b.stop()
-            # brain.screen.clear_screen()
-            # brain.screen.print("success")
             break
     wait(50, MSEC)
     brain.screen.print("READY")
@@ -509,6 +508,7 @@ def init():
     ui.add_button(50, 20, "INERTIAL", userTouchAction).set_color(Color.RED)
     ui.add_button(150, 20, "SHOOT", userTouchAction).set_color(Color.BLUE)
     ui.add_button(250, 20, "INTAKE", userTouchAction).set_color(Color.RED)
+    ui.add_button(350, 20, "LOOP", userTouchAction).set_color(Color(0x208020))
     ui.display()
 
     while True:
@@ -535,11 +535,40 @@ def shoot_func():
     shoot_motor_b.spin(FORWARD)
     while True:
         if pot.value(PERCENT) >= init_angle:
-            shoot_motor_a.stop()
-            shoot_motor_b.stop()
+            shoot.stop()
             break
     brain.screen.clear_screen()
     ui.display()
+
+def shoot_loop():
+    global shoot_count
+    shoot_count += 1
+    if shoot_count % 2 == 1:
+        while shoot_count % 2 == 1:
+            shoot.set_velocity(100, PERCENT)
+            shoot.set_stopping(HOLD)
+            shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
+            shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+            wait(350,MSEC)
+            shoot_motor_a.spin(REVERSE)
+            shoot_motor_b.spin(FORWARD)
+            while True:
+                if pot.value(PERCENT) >= init_angle:
+                    shoot.stop()
+                    break
+    else:
+        shoot.set_stopping(BRAKE)
+        shoot.stop()
+        wait(2,SECONDS)
+        shoot_motor_a.spin(REVERSE)
+        shoot_motor_b.spin(FORWARD)
+        while True:
+            if pot.value(PERCENT) >= init_angle:
+                shoot.set_stopping(HOLD)
+                shoot.stop()
+                break
+        
+    
 
 
 def inertial_reset():
@@ -575,10 +604,10 @@ wait(15, MSEC)
 controller_1.buttonB.pressed(pneu_toggle)
 controller_1.buttonUp.pressed(set_speed(2))
 controller_1.buttonDown.pressed(set_speed(1))
-controller_1.buttonA.pressed(shoot_func)
+controller_1.buttonA.pressed(shoot_loop)
+controller_1.buttonR2.pressed(shoot_func)
 
 '''
 初始化
 '''
 init()
-
