@@ -389,13 +389,6 @@ def control():
             controller_1.screen.set_cursor(2, 10)
             controller_1.screen.print("Speed Level: 1")
         
-        # # 弹射
-        # if controller_1.buttonR2.pressing():
-        #     shoot.set_stopping(HOLD)
-        #     shoot.spin(FORWARD)
-        # else:
-        #     shoot.stop()
-
         # 底盘
         y = controller_1.axis3.position() * ys
         x = controller_1.axis1.position() * xs
@@ -428,12 +421,8 @@ def control():
             arm.stop()
 
         # 弹射
-        if controller_1.buttonR1.pressing():
-            shoot.set_stopping(HOLD)
-            shoot.set_timeout(0.5,SECONDS)
-            shoot.spin_for(FORWARD,100,DEGREES)
-            shoot.stop()
-            shoot_ready()
+        if controller_1.buttonR2.pressing():
+            shoot_func()
 
         wait(5,MSEC)
 
@@ -511,6 +500,8 @@ def init():
     ui.add_button(350, 20, "LOOP", userTouchAction).set_color(Color(0x208020))
     ui.display()
 
+    
+def stats():
     while True:
         brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
         brain.screen.print_at("heading (yaw): ", inertial.heading(), x=150, y=175)
@@ -543,8 +534,8 @@ def shoot_func():
 def shoot_loop():
     global shoot_count
     shoot_count += 1
-    if shoot_count % 2 == 1:
-        while shoot_count % 2 == 1:
+    while True:
+        if shoot_count % 2 == 1:
             shoot.set_velocity(100, PERCENT)
             shoot.set_stopping(HOLD)
             shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
@@ -556,9 +547,24 @@ def shoot_loop():
                 if pot.value(PERCENT) >= init_angle:
                     shoot.stop()
                     break
-    else:
+        else:
+            shoot.set_stopping(BRAKE)
+            shoot.stop()
+            wait(2,SECONDS)
+            shoot_motor_a.spin(REVERSE)
+            shoot_motor_b.spin(FORWARD)
+            while True:
+                if pot.value(PERCENT) >= init_angle:
+                    shoot.set_stopping(HOLD)
+                    shoot.stop()
+                    break
+            break
+
+def climb():
         shoot.set_stopping(BRAKE)
         shoot.stop()
+        shoot_motor_a.spin_for(FORWARD, 1, SECONDS)
+        shoot_motor_b.spin_for(REVERSE, 1, SECONDS)
         wait(2,SECONDS)
         shoot_motor_a.spin(REVERSE)
         shoot_motor_b.spin(FORWARD)
@@ -567,7 +573,6 @@ def shoot_loop():
                 shoot.set_stopping(HOLD)
                 shoot.stop()
                 break
-        
     
 
 
@@ -605,9 +610,12 @@ controller_1.buttonB.pressed(pneu_toggle)
 controller_1.buttonUp.pressed(set_speed(2))
 controller_1.buttonDown.pressed(set_speed(1))
 controller_1.buttonA.pressed(shoot_loop)
+controller_1.buttonB.pressed(climb)
 controller_1.buttonR2.pressed(shoot_func)
 
 '''
 初始化
 '''
+control_thread = Thread( control )
+init2 = Thread( stats )
 init()
