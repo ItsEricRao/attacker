@@ -537,11 +537,22 @@ def shoot_func():
 def shoot_add():
     global shoot_count
     shoot_count += 1
-    shoot_task = Thread(shoot_loop)
     if shoot_count % 2 == 1:
         wait(10, MSEC)
+        global shoot_task
+        shoot_task = Thread(shoot_loop)
     else:
         shoot_task.stop()
+        shoot.set_stopping(BRAKE)
+        shoot.stop()
+        wait(2,SECONDS)
+        shoot_motor_a.spin(REVERSE)
+        shoot_motor_b.spin(FORWARD)
+        while True:
+            if pot.value(PERCENT) >= init_angle:
+                shoot.set_stopping(HOLD)
+                shoot.stop()
+                break
 
 def shoot_loop():
     while True:
