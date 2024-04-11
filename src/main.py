@@ -60,6 +60,7 @@ pneu_count = 0 # 记录气动执行次数
 shoot_count = 0
 init_angle = 68
 back_angle = 300
+climb_stat = False
 
 # 等待初始化
 wait(30, MSEC)
@@ -333,7 +334,7 @@ def userTouchAction(index, state):
         intake_func()
 
     if index == 3 and not state:
-        shoot_loop()
+        shoot_add()
 
 # GUI对象创建
 ui = ButtonUi()
@@ -371,7 +372,7 @@ def shoot_ready():
 def control():
     # global shoot_ready,speed_level
     global speed_level
-    speed_level = 3
+    speed_level = 1
     xs = 0.7
     ys = 1.0
     while True :
@@ -452,6 +453,7 @@ def init():
     shoot.set_stopping(HOLD)
     brain.screen.set_cursor(5,1)
     brain.screen.print("Catapult...")
+    shoot.set_stopping(HOLD)
     shoot.set_velocity(100,PERCENT)
     shoot_motor_a.reset_position()
     shoot_motor_b.reset_position()
@@ -506,6 +508,7 @@ def stats():
         brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
         brain.screen.print_at("heading (yaw): ", inertial.heading(), x=150, y=175)
         brain.screen.print_at("rotation sensor: ", pot.value(PERCENT), x=150, y=200)
+        brain.screen.print_at("shoot_count: ", shoot_count, x=150, y=225)
 '''
 自动程序
 '''
@@ -531,41 +534,38 @@ def shoot_func():
     brain.screen.clear_screen()
     ui.display()
 
-def shoot_loop():
+def shoot_add():
     global shoot_count
     shoot_count += 1
+    shoot_task = Thread(shoot_loop)
+    if shoot_count % 2 == 1:
+        wait(10, MSEC)
+    else:
+        shoot_task.stop()
+
+def shoot_loop():
     while True:
-        if shoot_count % 2 == 1:
-            shoot.set_velocity(100, PERCENT)
-            shoot.set_stopping(HOLD)
-            shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
-            shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
-            wait(350,MSEC)
-            shoot_motor_a.spin(REVERSE)
-            shoot_motor_b.spin(FORWARD)
-            while True:
-                if pot.value(PERCENT) >= init_angle:
-                    shoot.stop()
-                    break
-        else:
-            shoot.set_stopping(BRAKE)
-            shoot.stop()
-            wait(2,SECONDS)
-            shoot_motor_a.spin(REVERSE)
-            shoot_motor_b.spin(FORWARD)
-            while True:
-                if pot.value(PERCENT) >= init_angle:
-                    shoot.set_stopping(HOLD)
-                    shoot.stop()
-                    break
-            break
+        shoot.set_velocity(100, PERCENT)
+        shoot.set_stopping(HOLD)
+        shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
+        shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+        wait(350,MSEC)
+        shoot_motor_a.spin(REVERSE)
+        shoot_motor_b.spin(FORWARD)
+        while True:
+            if pot.value(PERCENT) >= init_angle:
+                shoot.stop()
+                break
 
 def climb():
+        climb_stat = True
         shoot.set_stopping(BRAKE)
         shoot.stop()
         shoot_motor_a.spin_for(FORWARD, 1, SECONDS)
         shoot_motor_b.spin_for(REVERSE, 1, SECONDS)
         wait(2,SECONDS)
+        shoot.set_velocity(10, PERCENT)
+        shoot.set_stopping(HOLD)
         shoot_motor_a.spin(REVERSE)
         shoot_motor_b.spin(FORWARD)
         while True:
@@ -609,9 +609,9 @@ wait(15, MSEC)
 controller_1.buttonB.pressed(pneu_toggle)
 controller_1.buttonUp.pressed(set_speed(2))
 controller_1.buttonDown.pressed(set_speed(1))
-controller_1.buttonA.pressed(shoot_loop)
-controller_1.buttonB.pressed(climb)
+controller_1.buttonA.pressed(shoot_add)
 controller_1.buttonR2.pressed(shoot_func)
+controller_1.buttonX.pressed(climb)
 
 '''
 初始化
