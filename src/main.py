@@ -32,7 +32,7 @@ left = MotorGroup(left_motor_a, left_motor_b)
 # 控制器
 controller_1 = Controller(PRIMARY)
 
-# 电位器
+# 角度传感器
 pot = PotentiometerV2(brain.three_wire_port.g)
 
 # 气动
@@ -57,10 +57,9 @@ limit_switch = Limit(brain.three_wire_port.a)
 '''
 speed_level = 2 # 2 -> 高速 1-> 低速
 pneu_count = 0 # 记录气动执行次数
-shoot_count = 0
-init_angle = 68
-back_angle = 300
-climb_stat = False
+shoot_count = 0 # 记录投石执行次数
+init_angle = 68 # 投石结构初始角度
+back_angle = 300 # 投石结构后倾角度
 
 # 等待初始化
 wait(30, MSEC)
@@ -323,12 +322,10 @@ GUI按钮检测
 '''
 def userTouchAction(index, state):
     if index == 0 and not state:
-        # brain.screen.print_at("Button 1 pressed ", x=150, y=150)
         inertial_reset()
 
     if index == 1 and not state:
         shoot_func()
-        # brain.screen.print_at("Button 2 pressed ", x=150, y=150)
 
     if index == 2 and not state:
         intake_func()
@@ -356,15 +353,6 @@ def pneu_toggle():
 def set_speed(value):
     global speed_level
     speed_level = value
-
-'''
-弹射结构初始化
-'''
-def shoot_ready():
-    shoot.set_stopping(HOLD)
-    while pot.angle(PERCENT) < 48:
-        shoot.spin(FORWARD)
-    shoot.stop()
 
 '''
 遥控
@@ -520,11 +508,16 @@ def auton():
 '''
 def shoot_func():
     brain.screen.print_at("SHOOT.", x=150, y=200)
+    # 设置速度
     shoot.set_velocity(100, PERCENT)
+    # 设置电机停止模式为锁死
     shoot.set_stopping(HOLD)
+    # 向后旋转至所定后倾角度以触发皮筋的限度拉动整个结构移动投射
     shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
     shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+    # 等待一段时间防止投射未完成便开始归位初始化
     wait(350,MSEC)
+    # 重新旋转归位至初始位置
     shoot_motor_a.spin(REVERSE)
     shoot_motor_b.spin(FORWARD)
     while True:
@@ -535,17 +528,23 @@ def shoot_func():
     ui.display()
 
 def shoot_add():
+    # 声明全局变量
     global shoot_count
+    # 按下后变量值加一以记录按键触发次数
     shoot_count += 1
     if shoot_count % 2 == 1:
         wait(10, MSEC)
+        # 声明全局变量绑定成为多线程任务
         global shoot_task
         shoot_task = Thread(shoot_loop)
     else:
+        # 停止多线程任务
         shoot_task.stop()
+        # 设置电机停止模式为刹车
         shoot.set_stopping(BRAKE)
         shoot.stop()
         wait(2,SECONDS)
+        # 重新旋转归位至初始位置
         shoot_motor_a.spin(REVERSE)
         shoot_motor_b.spin(FORWARD)
         while True:
@@ -556,11 +555,16 @@ def shoot_add():
 
 def shoot_loop():
     while True:
+        # 设置速度
         shoot.set_velocity(100, PERCENT)
+        # 设置电机停止模式为锁死
         shoot.set_stopping(HOLD)
+        # 向后旋转至所定后倾角度以触发皮筋的限度拉动整个结构移动投射
         shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
         shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+        # 等待一段时间防止投射未完成便开始归位初始化
         wait(350,MSEC)
+        # 重新旋转归位至初始位置
         shoot_motor_a.spin(REVERSE)
         shoot_motor_b.spin(FORWARD)
         while True:
@@ -569,7 +573,6 @@ def shoot_loop():
                 break
 
 def climb():
-        climb_stat = True
         shoot.set_stopping(BRAKE)
         shoot.stop()
         shoot_motor_a.spin_for(FORWARD, 1, SECONDS)
@@ -598,12 +601,14 @@ def intake_func():
 '''
 打包
 '''
+# 绑定auton函数至Vex默认自动模块中去
 def vex_auton():
     auton_task_0 = Thread(auton)
     while( competition.is_autonomous() and competition.is_enabled() ):
         wait(10, MSEC)
     auton_task_0.stop()
 
+# 绑定control函数至Vex默认操纵模块中去
 def vex_control():
     control_task_0 = Thread( control )
     while ( competition.is_driver_control() and competition.is_enabled() ):
@@ -627,6 +632,9 @@ controller_1.buttonX.pressed(climb)
 '''
 初始化
 '''
+# 启动操纵函数
 control_thread = Thread( control )
-init2 = Thread( stats )
+# 启动状态显示函数
+stats_thread = Thread( stats )
+# 开始初始化
 init()
