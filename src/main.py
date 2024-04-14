@@ -248,7 +248,7 @@ class ButtonUi:
             text = b.alttext
         else:
             text = b.text
-        # we need to add twxt width to python VM, this will do for now
+        # we need to add text width to python VM, this will do for now
         textwidth = len(text) * 10
         self.brain.screen.print_at(
             text, opaque=False, x=b.xpos + (b.width-textwidth)/2, y=b.ypos + b.height/2 + 10)
@@ -350,19 +350,23 @@ def pneu_toggle():
 '''
 设置速度
 '''
-def set_speed(value):
+def set_speed_1():
     global speed_level
-    speed_level = value
+    speed_level = 1
+
+def set_speed_2():
+    global speed_level
+    speed_level = 2
+
 
 '''
 遥控
 '''
 def control():
-    # global shoot_ready,speed_level
     global speed_level
     speed_level = 1
-    xs = 0.7
-    ys = 1.0
+    xs = 0.35
+    ys = 0.5
     while True :
         # 速度判断
         if speed_level == 2 :
@@ -372,8 +376,8 @@ def control():
             controller_1.screen.set_cursor(2, 10)
             controller_1.screen.print("Speed Level: 2")
         elif speed_level == 1 :
-            xs = 0.3
-            ys = 0.6
+            xs = 0.35
+            ys = 0.5
             controller_1.screen.clear_screen()
             controller_1.screen.set_cursor(2, 10)
             controller_1.screen.print("Speed Level: 1")
@@ -490,7 +494,9 @@ def init():
     ui.add_button(350, 20, "LOOP", userTouchAction).set_color(Color(0x208020))
     ui.display()
 
-    
+'''
+状态显示函数
+'''
 def stats():
     while True:
         brain.screen.print_at("angle: ", inertial.rotation(), x=150, y=150)
@@ -602,38 +608,35 @@ def intake_func():
 打包
 '''
 # 绑定auton函数至Vex默认自动模块中去
-def vex_auton():
+def vexcode_auton_function():
     auton_task_0 = Thread(auton)
     while( competition.is_autonomous() and competition.is_enabled() ):
         wait(10, MSEC)
     auton_task_0.stop()
 
 # 绑定control函数至Vex默认操纵模块中去
-def vex_control():
+def vexcode_driver_function():
     control_task_0 = Thread( control )
     while ( competition.is_driver_control() and competition.is_enabled() ):
         wait(10, MSEC)
     control_task_0.stop()
 
 # 注册打包的函数
-competition = Competition( vex_auton, vex_control )
+competition = Competition( vexcode_driver_function, vexcode_auton_function )
 wait(15, MSEC)
 
 '''
 按键检测
 '''
 controller_1.buttonB.pressed(pneu_toggle)
-controller_1.buttonUp.pressed(set_speed(2))
-controller_1.buttonDown.pressed(set_speed(1))
+controller_1.buttonUp.pressed(set_speed_2)
+controller_1.buttonDown.pressed(set_speed_1)
 controller_1.buttonA.pressed(shoot_add)
-controller_1.buttonR2.pressed(shoot_func)
 controller_1.buttonX.pressed(climb)
 
 '''
 初始化
 '''
-# 启动操纵函数
-control_thread = Thread( control )
 # 启动状态显示函数
 stats_thread = Thread( stats )
 # 开始初始化
