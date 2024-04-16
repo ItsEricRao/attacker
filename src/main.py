@@ -49,9 +49,8 @@ shoot = MotorGroup(shoot_motor_a, shoot_motor_b)
 # 陀螺仪
 inertial = Inertial(Ports.PORT7)
 
-# 限位开关
-limit_switch = Limit(brain.three_wire_port.a)
-
+# 锁死结构电机
+lock_motor = Motor(Ports.PORT5)
 '''
 全局变量声明
 '''
@@ -60,6 +59,8 @@ pneu_count = 0 # 记录气动执行次数
 shoot_count = 0 # 记录投石执行次数
 init_angle = 68 # 投石结构初始角度
 back_angle = 300 # 投石结构后倾角度
+xs = 0.7 # x轴速度
+ys = 1.0 # y轴速度
 
 # 等待初始化
 wait(30, MSEC)
@@ -351,79 +352,49 @@ def pneu_toggle():
 设置速度
 '''
 def set_speed_1():
-    global speed_level
-    speed_level = 1
+    global xs, ys
+    xs = 0.525
+    ys = 0.75
+    controller_1.screen.clear_screen()
+    controller_1.screen.set_cursor(2, 10)
+    controller_1.screen.print("Speed Level: 1")
+
 
 def set_speed_2():
-    global speed_level
-    speed_level = 2
+    global xs, ys
+    xs = 1.0
+    ys = 1.0
+    controller_1.screen.clear_screen()
+    controller_1.screen.set_cursor(2, 10)
+    controller_1.screen.print("Speed Level: 2")
 
 
 '''
 遥控
 '''
-def control():
-    global speed_level
-    speed_level = 1
-    xs = 0.35
-    ys = 0.5
-    while True :
-        # 速度判断
-        if speed_level == 2 :
-            xs = 0.7
-            ys = 1.0
-            controller_1.screen.clear_screen()
-            controller_1.screen.set_cursor(2, 10)
-            controller_1.screen.print("Speed Level: 2")
-        elif speed_level == 1 :
-            xs = 0.35
-            ys = 0.5
-            controller_1.screen.clear_screen()
-            controller_1.screen.set_cursor(2, 10)
-            controller_1.screen.print("Speed Level: 1")
-        
-        # 底盘
+def driver_control():
+    while True:
         y = controller_1.axis3.position() * ys
         x = controller_1.axis1.position() * xs
-        if abs(y) > 10 or abs(x) > 10 :
-            left.set_velocity( y + x , PERCENT)
-            right.set_velocity( y - x , PERCENT)
-          
-            left.spin(FORWARD)
-            right.spin(FORWARD)
-           
-        else :
+        if abs(y) > 10 or abs(x) > 10:
+                left.set_velocity( y + x , PERCENT)
+                right.set_velocity( y - x , PERCENT)
+                left.spin(FORWARD)
+                right.spin(FORWARD)
+        else:
             left.stop()
             right.stop()
-            
-        
-        # 收集结构
         if controller_1.buttonL1.pressing():
             intake.spin(FORWARD)
         elif controller_1.buttonL2.pressing():
             intake.spin(REVERSE)
         else:
-            intake.stop()        
-
-        # 提升
-        if controller_1.buttonRight.pressing():
-            arm.spin(FORWARD)
-        elif controller_1.buttonLeft.pressing():
-            arm.spin(REVERSE)
-        else:
-            arm.stop()
-
-        # 弹射
-        if controller_1.buttonR2.pressing():
-            shoot_func()
-
-        wait(5,MSEC)
+            intake.stop()  
 
 '''
 初始化
 '''
 def init():
-    global shoot_ready
     brain.screen.set_cursor(1,1)
     brain.screen.print("-=Lianyungang Senior High School=- Attacker v0.1")
     wait(1, SECONDS)
@@ -595,7 +566,7 @@ def climb():
                 break
     
 
-
+# 重置陀螺仪
 def inertial_reset():
     inertial.reset_heading()
     inertial.reset_rotation()
@@ -603,6 +574,11 @@ def inertial_reset():
 def intake_func():
     intake.spin(FORWARD)
         
+def lock_forward():
+    lock_motor.spin_for(FORWARD, 45, DEGREES)
+
+def lock_reverse():
+    lock_motor.spin_for(REVERSE, 45, DEGREES)
 
 '''
 打包
@@ -614,9 +590,9 @@ def vexcode_auton_function():
         wait(10, MSEC)
     auton_task_0.stop()
 
-# 绑定control函数至Vex默认操纵模块中去
+# 绑定driver_control函数至Vex默认操纵模块中去
 def vexcode_driver_function():
-    control_task_0 = Thread( control )
+    control_task_0 = Thread( driver_control )
     while ( competition.is_driver_control() and competition.is_enabled() ):
         wait(10, MSEC)
     control_task_0.stop()
@@ -631,6 +607,8 @@ wait(15, MSEC)
 controller_1.buttonB.pressed(pneu_toggle)
 controller_1.buttonUp.pressed(set_speed_2)
 controller_1.buttonDown.pressed(set_speed_1)
+controller_1.buttonLeft.pressed(lock_forward)
+controller_1.buttonRight.pressed(lock_reverse)
 controller_1.buttonA.pressed(shoot_add)
 controller_1.buttonX.pressed(climb)
 
