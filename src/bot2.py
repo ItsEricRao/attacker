@@ -43,7 +43,7 @@ arm = Motor(Ports.PORT4, GearSetting.RATIO_18_1, False)
 
 # 弹射
 shoot_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
-shoot_motor_b = Motor(Ports.PORT8, GearSetting.RATIO_6_1, True)
+shoot_motor_b = Motor(Ports.PORT8, GearSetting.RATIO_6_1, False)
 shoot = MotorGroup(shoot_motor_a, shoot_motor_b)
 
 # 陀螺仪
@@ -421,7 +421,7 @@ def init():
     shoot_motor_a.reset_position()
     shoot_motor_b.reset_position()
     shoot_motor_a.spin(REVERSE)
-    shoot_motor_b.spin(FORWARD)
+    shoot_motor_b.spin(REVERSE)
     while True:
         if pot.value(PERCENT) >= init_angle:
             shoot_motor_a.stop()
@@ -491,12 +491,12 @@ def shoot_func():
     shoot.set_stopping(HOLD)
     # 向后旋转至所定后倾角度以触发皮筋的限度拉动整个结构移动投射
     shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
-    shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+    shoot_motor_b.spin_for(REVERSE,back_angle,DEGREES)
     # 等待一段时间防止投射未完成便开始归位初始化
     wait(350,MSEC)
     # 重新旋转归位至初始位置
     shoot_motor_a.spin(REVERSE)
-    shoot_motor_b.spin(FORWARD)
+    shoot_motor_b.spin(REVERSE)
     while True:
         if pot.value(PERCENT) >= init_angle:
             shoot.stop()
@@ -523,7 +523,7 @@ def shoot_add():
         wait(2,SECONDS)
         # 重新旋转归位至初始位置
         shoot_motor_a.spin(REVERSE)
-        shoot_motor_b.spin(FORWARD)
+        shoot_motor_b.spin(REVERSE)
         while True:
             if pot.value(PERCENT) >= init_angle:
                 shoot.set_stopping(HOLD)
@@ -538,12 +538,12 @@ def shoot_loop():
         shoot.set_stopping(HOLD)
         # 向后旋转至所定后倾角度以触发皮筋的限度拉动整个结构移动投射
         shoot_motor_a.spin_for(REVERSE,back_angle,DEGREES)
-        shoot_motor_b.spin_for(FORWARD,back_angle,DEGREES)
+        shoot_motor_b.spin_for(REVERSE,back_angle,DEGREES)
         # 等待一段时间防止投射未完成便开始归位初始化
         wait(350,MSEC)
         # 重新旋转归位至初始位置
         shoot_motor_a.spin(REVERSE)
-        shoot_motor_b.spin(FORWARD)
+        shoot_motor_b.spin(REVERSE)
         while True:
             if pot.value(PERCENT) >= init_angle:
                 shoot.stop()
@@ -553,12 +553,12 @@ def climb():
         shoot.set_stopping(BRAKE)
         shoot.stop()
         shoot_motor_a.spin_for(FORWARD, 1, SECONDS)
-        shoot_motor_b.spin_for(REVERSE, 1, SECONDS)
+        shoot_motor_b.spin_for(FORWARD, 1, SECONDS)
         wait(2,SECONDS)
         shoot.set_velocity(10, PERCENT)
         shoot.set_stopping(HOLD)
         shoot_motor_a.spin(REVERSE)
-        shoot_motor_b.spin(FORWARD)
+        shoot_motor_b.spin(REVERSE)
         while True:
             if pot.value(PERCENT) >= init_angle:
                 shoot.set_stopping(HOLD)
