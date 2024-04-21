@@ -58,7 +58,7 @@ speed_level = 2 # 2 -> 高速 1-> 低速
 pneu_count = 0 # 记录气动执行次数
 shoot_count = 0 # 记录投石执行次数
 init_angle = 44 # 投石结构初始角度
-back_angle = 700 # 投石结构后倾角度
+back_angle = 300 # 投石结构后倾角度
 xs = 0.7 # x轴速度
 ys = 1.0 # y轴速度
 
